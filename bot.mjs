@@ -98,6 +98,15 @@ bot.command('view', async (ctx) => {
 bot.command('stop', async (ctx) => {
   if (queueActive) {
     queueActive = false;
+    if (activeChatId && activeMessageId) {
+      try {
+        await bot.telegram.editMessageReplyMarkup(activeChatId, activeMessageId, null, {
+          inline_keyboard: [],
+        });
+      } catch (error) {
+        console.error('Ошибка при удалении кнопок:', error);
+      }
+    }
     activeMessageId = null;
     activeChatId = null;
     ctx.reply('Запись в очередь остановлена.');
@@ -108,15 +117,21 @@ bot.command('stop', async (ctx) => {
 
 // Обработка нажатия на кнопку
 bot.action('join_queue', async (ctx) => {
+  const messageId = ctx.update.callback_query.message.message_id;
   const user = ctx.update.callback_query.from;
 
-  if (!isUserInQueue(user.id)) {
-    addUserToQueue(user);
-    await updateQueueMessage('Записаться в очередь', {
-      inline_keyboard: [[{ text: 'Записаться в очередь', callback_data: 'join_queue' }]],
-    });
+  // Проверка, что сообщение соответствует текущему активному сообщению
+  if (messageId === activeMessageId && queueActive) {
+    if (!isUserInQueue(user.id)) {
+      addUserToQueue(user);
+      await updateQueueMessage('Записаться в очередь', {
+        inline_keyboard: [[{ text: 'Записаться в очередь', callback_data: 'join_queue' }]],
+      });
+    } else {
+      await ctx.answerCbQuery('Вы уже записаны в очередь.');
+    }
   } else {
-    await ctx.answerCbQuery('Вы уже записаны в очередь.');
+    await ctx.answerCbQuery('Запись в очередь не активна или не соответствует текущему сообщению.');
   }
 });
 
