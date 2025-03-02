@@ -19,3 +19,7 @@ setupCommands(bot);
 setupActions(bot);
 
 bot.launch().catch((error) => console.error('Ошибка запуска бота:', error));
+
+// Enable graceful stop
+process.once('SIGINT', () => bot.stop('SIGINT'))
+process.once('SIGTERM', () => bot.stop('SIGTERM'))

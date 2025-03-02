@@ -1,6 +1,6 @@
 // actions.mjs
 
-import { getQueueList, addUserToQueue, removeUserFromQueue, isUserInQueue } from './queue.mjs';
+import { getQueueList, addUserToQueue, removeUserFromQueue, isUserInQueue, getQueueName } from './queue.mjs';
 import { config } from './config.mjs';
 
 export const sendQueueMessage = async (bot, chatId, text, keyboard) => {
@@ -38,7 +38,7 @@ export const setupActions = (bot) => {
     if (messageId === config.activeMessageId && config.queueActive) {
       if (!isUserInQueue(user.id)) {
         addUserToQueue(user);
-        await updateQueueMessage(bot, 'Записаться в очередь', {
+        await updateQueueMessage(bot, `Записаться в очередь "${getQueueName()}"`, {
           inline_keyboard: [
             [{ text: 'Записаться в очередь', callback_data: 'join_queue' }],
             [{ text: 'Покинуть очередь', callback_data: 'leave_queue' }],
@@ -60,7 +60,7 @@ export const setupActions = (bot) => {
     if (messageId === config.activeMessageId && config.queueActive) {
       if (isUserInQueue(user.id)) {
         removeUserFromQueue(user.id);
-        await updateQueueMessage(bot, 'Записаться в очередь', {
+        await updateQueueMessage(bot, `Записаться в очередь "${getQueueName()}"`, {
           inline_keyboard: [
             [{ text: 'Записаться в очередь', callback_data: 'join_queue' }],
             [{ text: 'Покинуть очередь', callback_data: 'leave_queue' }],
