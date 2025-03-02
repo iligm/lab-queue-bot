@@ -53,9 +53,8 @@ export const setupCommands = (bot) => {
     }
   });
 
-  // Добавляем обработчик команды /help
   bot.command('help', async (ctx) => {
-    const githubLink = 'https://github.com/iligm/lab-queue-bot'; // Замените на ссылку вашего репозитория
+    const githubLink = 'https://github.com/iligm/lab-queue-bot'; 
     const messageText = `**Доступные команды:**
 - \`/queue\` — начать новую очередь.
 - \`/stop\` — остановить текущую очередь.
