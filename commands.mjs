@@ -13,7 +13,7 @@ export const setupCommands = (bot) => {
         await sendQueueMessage(bot, chatId, 'Записаться в очередь', {
           inline_keyboard: [
             [{ text: 'Записаться в очередь', callback_data: 'join_queue' }],
-            [{ text: 'Покинуть очередь', callback_data: 'leave_queue' }],
+            [{ text: 'Покинуть очередь', callback_data: 'leave_queue' }]
           ],
         });
       } catch (error) {
@@ -51,5 +51,21 @@ export const setupCommands = (bot) => {
     } else {
       ctx.reply('Очередь неактивна.');
     }
+  });
+
+  // Добавляем обработчик команды /help
+  bot.command('help', async (ctx) => {
+    const githubLink = 'https://github.com/iligm/lab-queue-bot'; // Замените на ссылку вашего репозитория
+    const messageText = `**Доступные команды:**
+- \`/queue\` — начать новую очередь.
+- \`/stop\` — остановить текущую очередь.
+- \`/view\` — посмотреть текущую очередь.
+- \`/help\` — показать это сообщение.
+
+🔗 Подробнее на GitHub:
+${githubLink}`;
+
+    // Отправляем сообщение с GitHub ссылкой и форматированием Markdown
+    ctx.replyWithMarkdown(messageText);
   });
 };
