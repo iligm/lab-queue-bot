@@ -89,9 +89,10 @@ ${githubLink}`);
     const messageText = ctx.message.text.trim();
     const mentionedUser = messageText.split(' ')[1];
 
+    setTimeout(() => deleteMessage(ctx, ctx.message.message_id), 5000);
+    
     if (!mentionedUser || !mentionedUser.startsWith('@')) {
       const message = await ctx.reply('Используйте: /swap @username');
-      setTimeout(() => deleteMessage(ctx, ctx.message.message_id), 5000);
       setTimeout(() => deleteMessage(ctx, message.message_id), 5000);
       return;
     }
@@ -101,14 +102,12 @@ ${githubLink}`);
 
     if (!isUserInQueue(sender.id)) {
       const message = await ctx.reply('Вы не в очереди.');
-      setTimeout(() => deleteMessage(ctx, ctx.message.message_id), 5000);
       setTimeout(() => deleteMessage(ctx, message.message_id), 5000);
       return;
     }
 
     if (!mentionedUserId || !isUserInQueue(mentionedUserId)) {
       const message = await ctx.reply('Пользователь не найден в очереди.');
-      setTimeout(() => deleteMessage(ctx, ctx.message.message_id), 5000);
       setTimeout(() => deleteMessage(ctx, message.message_id), 5000);
       return;
     }
@@ -127,15 +126,15 @@ ${githubLink}`);
     );
 
     bot.action(/^accept_swap_(\d+)_(\d+)$/, async (ctx) => {
-      const [, userId1, userId2] = ctx.match;
-      const clickerId = ctx.from.userId;
-      
-      if (userId2 != clickerId) {
-        await ctx.answerCbQuery('Доступно только участникам обмена', { show_alert: true });
+      const [, userId1, userId2] = ctx.match.map(Number);
+      const clickerId = Number(ctx.from.userId);
+
+      if (clickerId !== userId2) {
+        await ctx.answerCbQuery('Доступно только участнику, с которым хотят поменяться', { show_alert: true });
         return;
       }
-      
-      swapUserFromQueue(Number(userId1), Number(userId2));
+
+      swapUserFromQueue(userId1, userId2);
 
       const updatedQueue = getQueueList();
       await ctx.editMessageText(`Обмен подтвержден!\n\nТекущая очередь:\n${updatedQueue}`);
@@ -150,10 +149,10 @@ ${githubLink}`);
     });
 
     bot.action(/^reject_swap_(\d+)_(\d+)$/, async (ctx) => {
-      const [, userId1, userId2] = ctx.match;
-      const clickerId = ctx.from.userId;
-      
-      if (userId2 != clickerId && userId1 != clickerId) {
+      const [, userId1, userId2] = ctx.match.map(Number);
+      const clickerId = Number(ctx.from.userId);
+
+      if (clickerId !== userId1 && clickerId !== userId2) {
         await ctx.answerCbQuery('Доступно только участникам обмена', { show_alert: true });
         return;
       }
@@ -161,6 +160,7 @@ ${githubLink}`);
       await ctx.editMessageText('Обмен отклонен.');
       setTimeout(() => deleteMessage(ctx, ctx.callbackQuery.message.message_id), 5000);
     });
+
 
     setTimeout(() => deleteMessage(ctx, swapMessage.message_id), 5000);
   });
