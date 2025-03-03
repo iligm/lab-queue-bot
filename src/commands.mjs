@@ -1,4 +1,4 @@
-import { swapUserFromQueue, clearQueue, getQueueList, isUserInQueue, setQueueName, getUserIdByUsername } from './queue.mjs';
+import { swapUserFromQueue, clearQueue, getQueueList, isUserInQueue, setQueueName, getQueueName, getUserIdByUsername } from './queue.mjs';
 import { config } from './config.mjs';
 import { sendQueueMessage, updateQueueMessage } from './actions.mjs';
 
@@ -23,7 +23,7 @@ export const setupCommands = (bot) => {
 🔗 Подробнее на GitHub:  
 ${githubLink}`);
 
-    setTimeout(() => ctx.deleteMessage(), 5000);
+    setTimeout(() => deleteMessage(ctx, ctx.message.message_id), 5000);
   });
 
   bot.command('queue', async (ctx) => {
@@ -51,7 +51,7 @@ ${githubLink}`);
       }
     } else {
       const message = await ctx.reply('Очередь уже активна.');
-      setTimeout(() => ctx.deleteMessage(), 5000);
+      setTimeout(() => deleteMessage(ctx, ctx.message.message_id), 5000);
       setTimeout(() => deleteMessage(ctx, message.message_id), 5000);
     }
   });
@@ -59,7 +59,7 @@ ${githubLink}`);
   bot.command('view', async (ctx) => {
     const queueList = getQueueList();
     const message = await ctx.reply(queueList);
-    setTimeout(() => ctx.deleteMessage(), 5000);
+    setTimeout(() => deleteMessage(ctx, ctx.message.message_id), 5000);
   });
 
   bot.command('stop', async (ctx) => {
@@ -78,10 +78,10 @@ ${githubLink}`);
       config.activeMessageId = null;
       config.activeChatId = null;
       const message = await ctx.reply('Запись в очередь остановлена.');
-      setTimeout(() => ctx.deleteMessage(), 5000);
+      setTimeout(() => deleteMessage(ctx, ctx.message.message_id), 5000);
     } else {
       const message = await ctx.reply('Очередь неактивна.');
-      setTimeout(() => ctx.deleteMessage(), 5000);
+      setTimeout(() => deleteMessage(ctx, ctx.message.message_id), 5000);
     }
   });
 
@@ -91,7 +91,7 @@ ${githubLink}`);
 
     if (!mentionedUser || !mentionedUser.startsWith('@')) {
       const message = await ctx.reply('Используйте: /swap @username');
-      setTimeout(() => ctx.deleteMessage(), 5000);
+      setTimeout(() => deleteMessage(ctx, ctx.message.message_id), 5000);
       setTimeout(() => deleteMessage(ctx, message.message_id), 5000);
       return;
     }
@@ -101,14 +101,14 @@ ${githubLink}`);
 
     if (!isUserInQueue(sender.id)) {
       const message = await ctx.reply('Вы не в очереди.');
-      setTimeout(() => ctx.deleteMessage(), 5000);
+      setTimeout(() => deleteMessage(ctx, ctx.message.message_id), 5000);
       setTimeout(() => deleteMessage(ctx, message.message_id), 5000);
       return;
     }
 
     if (!mentionedUserId || !isUserInQueue(mentionedUserId)) {
       const message = await ctx.reply('Пользователь не найден в очереди.');
-      setTimeout(() => ctx.deleteMessage(), 5000);
+      setTimeout(() => deleteMessage(ctx, ctx.message.message_id), 5000);
       setTimeout(() => deleteMessage(ctx, message.message_id), 5000);
       return;
     }
@@ -120,7 +120,7 @@ ${githubLink}`);
         reply_markup: {
           inline_keyboard: [
             [{ text: 'Да', callback_data: `accept_swap_${sender.id}_${mentionedUserId}` }],
-            [{ text: 'Нет', callback_data: 'reject_swap' }],
+            [{ text: 'Нет', callback_data: `reject_swap_${sender.id}_${mentionedUserId}` }],
           ],
         },
       }
@@ -128,6 +128,13 @@ ${githubLink}`);
 
     bot.action(/^accept_swap_(\d+)_(\d+)$/, async (ctx) => {
       const [, userId1, userId2] = ctx.match;
+      const clickerId = ctx.from.userId;
+      
+      if (userId2 != clickerId) {
+        await ctx.answerCbQuery('Доступно только участникам обмена', { show_alert: true });
+        return;
+      }
+      
       swapUserFromQueue(Number(userId1), Number(userId2));
 
       const updatedQueue = getQueueList();
@@ -142,7 +149,15 @@ ${githubLink}`);
       setTimeout(() => deleteMessage(ctx, ctx.callbackQuery.message.message_id), 5000);
     });
 
-    bot.action('reject_swap', async (ctx) => {
+    bot.action(/^reject_swap_(\d+)_(\d+)$/, async (ctx) => {
+      const [, userId1, userId2] = ctx.match;
+      const clickerId = ctx.from.userId;
+      
+      if (userId2 != clickerId && userId1 != clickerId) {
+        await ctx.answerCbQuery('Доступно только участникам обмена', { show_alert: true });
+        return;
+      }
+      
       await ctx.editMessageText('Обмен отклонен.');
       setTimeout(() => deleteMessage(ctx, ctx.callbackQuery.message.message_id), 5000);
     });
