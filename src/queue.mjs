@@ -1,3 +1,5 @@
+//queue.mjs
+
 import fs from 'fs';
 
 const queueFile = 'queue.json';

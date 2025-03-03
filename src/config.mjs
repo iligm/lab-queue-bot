@@ -1,6 +1,5 @@
-// config.mjs
-
 import dotenv from 'dotenv';
+import fs from 'fs';
 
 dotenv.config();
 
@@ -9,4 +8,5 @@ export const config = {
   activeMessageId: null,
   activeChatId: null,
   queueActive: false,
+  settings: JSON.parse(fs.readFileSync('config.json', 'utf8'))
 };
