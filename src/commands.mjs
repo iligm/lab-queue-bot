@@ -157,7 +157,7 @@ ${githubLink}`);
         await ctx.answerCbQuery('Доступно только участникам обмена', { show_alert: true });
         return;
       }
-      
+
       await ctx.editMessageText('Обмен отклонен.');
       setTimeout(() => deleteMessage(ctx, ctx.callbackQuery.message.message_id), 5000);
     });
@@ -171,6 +171,6 @@ const deleteMessage = async (ctx, messageId) => {
   try {
     await ctx.deleteMessage(messageId);
   } catch (error) {
-    console.error(`Ошибка удаления сообщения (ID: ${messageId}):`, error);
+    console.log(`Ошибка удаления сообщения (ID: ${messageId}):`, error);
   }
 };
